@@ -1,0 +1,46 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+def virtualbox_version()
+    vboxmanage = Vagrant::Util::Which.which("VBoxManage") || Vagrant::Util::Which.which("VBoxManage.exe")
+    if vboxmanage == nil && Vagrant::Util::Platform.windows?
+        vboxmanage = ENV["VBOX_MSI_INSTALL_PATH"] || ENV["VBOX_INSTALL_PATH"]
+        vboxmanage = vboxmanage + "\\VBoxManage.exe"
+    end
+    if vboxmanage != nil
+        s = Vagrant::Util::Subprocess.execute(vboxmanage, '--version')
+        longVersion = s.stdout.strip!
+		shortVersion = longVersion.split("r")[0]
+		return shortVersion
+    else
+        return nil
+    end
+end
+
+VBOX_VERSION = virtualbox_version()
+
+Vagrant.configure("2") do |config|
+
+  config.vm.synced_folder ".", "/data/", disabled: true
+
+  config.vm.provider "virtualbox" do |vb|
+    vb.gui = true
+    vb.memory = "1024"
+  end
+
+  config.vm.provision "vbguestupdate", type: "shell", env: {"VBOX_VERSION" => VBOX_VERSION}, inline: <<-SHELL
+    echo 'if [ -n "${DISPLAY}" ]; then setxkbmap hu; fi;' >>/home/vagrant/.bashrc
+
+	wget http://download.virtualbox.org/virtualbox/${VBOX_VERSION}/VBoxGuestAdditions_${VBOX_VERSION}.iso
+	mkdir -p /media/iso
+	mount -o loop VBoxGuestAdditions_${VBOX_VERSION}.iso /media/iso
+	CURRPWD=`pwd`
+	cd /media/iso
+	./VBoxLinuxAdditions.run
+	cd ${CURRPWD}
+	umount /media/iso
+	unlink VBoxGuestAdditions_${VBOX_VERSION}.iso
+  SHELL
+
+  config.vm.provision "reboot", type: "shell", inline: "reboot"
+end
