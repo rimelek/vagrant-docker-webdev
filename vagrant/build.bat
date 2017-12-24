@@ -40,7 +40,7 @@ vagrant package --base "%VM_ID%" --output "%BOX_OUTPUT%" --vagrantfile "Vagrantf
 set BOX_EXISTS=1
 SETLOCAL ENABLEDELAYEDEXPANSION
 set BOX_VERSION=0
-FOR /F "tokens=* USEBACKQ" %%F IN (`vagrant box list ^| findstr /R /C:"^my/firsttest *\(virtualbox, %BOX_VERSION%\)$"`) DO (
+FOR /F "tokens=* USEBACKQ" %%F IN (`vagrant box list ^| findstr /R /C:"^%BOX_NAME_AND_VERSION% *\(virtualbox, %BOX_VERSION%\)$"`) DO (
     SET var=%%F
 )
 
