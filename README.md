@@ -1,0 +1,1 @@
+This project contains everything to build the Vagrant Box of [itsziget/docker-webdev](https://app.vagrantup.com/itsziget/boxes/docker-webdev). 
